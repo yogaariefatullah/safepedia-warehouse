@@ -223,4 +223,24 @@ class WarehouseRequestController extends Controller
                 'Pengajuan berhasil disubmit dan menunggu review SPV Gudang.'
             );
     }
+
+    public function destroyDocument(WarehouseDocument $document)
+    {
+        $warehouseRequest = $document->warehouseRequest;
+
+        if ($warehouseRequest->status !== 'draft') {
+            return redirect()
+                ->back()
+                ->with('error', 'Dokumen hanya dapat dihapus saat pengajuan masih berstatus draft.');
+        }
+        if ($document->file_path && Storage::disk('public')->exists($document->file_path)) {
+            Storage::disk('public')->delete($document->file_path);
+        }
+
+        $document->delete();
+
+        return redirect()
+            ->back()
+            ->with('success', 'Dokumen berhasil dihapus.');
+    }
 }

@@ -5,6 +5,7 @@ use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WarehouseRequestController;
 use App\Http\Controllers\warehouseDocumentController;
+use App\Http\Controllers\ApprovalController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -24,32 +25,24 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', '2fa'])->group(function () {
     /*
     |--------------------------------------------------------------------------
-    | Profile
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/profile', [ProfileController::class, 'edit'])
-        ->name('profile.edit');
-
-    Route::patch('/profile', [ProfileController::class, 'update'])
-        ->name('profile.update');
-
-    Route::delete('/profile', [ProfileController::class, 'destroy'])
-        ->name('profile.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
     | warehouse-requests
     |--------------------------------------------------------------------------
     */
-
     Route::resource('warehouse-requests', WarehouseRequestController::class);
     Route::post('/warehouse-requests/{warehouseRequest}/documents', [WarehouseRequestController::class, 'uploadDocument'])->name('warehouse-requests.documents.upload');
     Route::post('/warehouse-requests/{warehouseRequest}/submit', [WarehouseRequestController::class, 'submit'])->name('warehouse-requests.submit');
-    Route::get(
-        '/warehouse-requests/documents/{document}/download',
-        [WarehouseDocumentController::class, 'download']
-    )->name('warehouse-requests.documents.download');
+    Route::get('/warehouse-requests/documents/{document}/download', [WarehouseDocumentController::class, 'download'])->name('warehouse-requests.documents.download');
+    Route::delete(
+        '/warehouse-requests/documents/{document}/destroy',
+        [WarehouseRequestController::class, 'destroyDocument']
+    )->name('warehouse-requests.documents.destroy.zz');
+});
+
+Route::middleware(['auth', '2fa', 'role:spv_gudang,kepala_gudang,manager_operasional,direktur_operasional,direktur_keuangan',])->prefix('approvals')->name('approvals.')->group(function () {
+    Route::get('/', [ApprovalController::class, 'index'])->name('index');
+    Route::get('/{warehouseRequest}', [ApprovalController::class, 'show'])->name('show');
+    Route::post('/{warehouseRequest}/approve', [ApprovalController::class, 'approve'])->name('approve');
+    Route::post('/{warehouseRequest}/reject', [ApprovalController::class, 'reject'])->name('reject');
 });
 
 /*

@@ -30,6 +30,71 @@
         .table-hover tbody tr:hover {
             background-color: #f1f5f9;
         }
+
+        .approval-timeline {
+            position: relative;
+            padding-left: 4px;
+        }
+
+        .approval-step,
+        .approval-final {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-height: 55px;
+        }
+
+        .approval-step:not(:last-child)::before {
+            content: "";
+            position: absolute;
+            left: 9px;
+            top: 20px;
+            bottom: -10px;
+            width: 2px;
+            background: #dee2e6;
+        }
+
+        .approval-dot {
+            position: relative;
+            z-index: 2;
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            background: #6c757d;
+            color: white;
+        }
+
+        .approval-step.completed .approval-dot {
+            background: #198754;
+        }
+
+        .approval-step.active .approval-dot {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .approval-final.approved .approval-dot {
+            background: #198754;
+        }
+
+        .approval-final.rejected .approval-dot {
+            background: #dc3545;
+        }
+
+        .approval-line-content {
+            padding-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .approval-final {
+            min-height: auto;
+        }
     </style>
 </head>
 
@@ -63,12 +128,13 @@
                     </div>
                 @endif
                 <!-- Tombol Logout -->
-                    <form method="POST" action="{{ route('logout') }}" class="d-inline" onsubmit="return confirm('Apakah Anda yakin ingin keluar dari sistem?');">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-danger btn-sm font-weight-bold px-3 py-2 rounded-2">
-                            <i class="bi bi-box-arrow-right me-1"></i> Keluar
-                        </button>
-                    </form>
+                <form method="POST" action="{{ route('logout') }}" class="d-inline"
+                    onsubmit="return confirm('Apakah Anda yakin ingin keluar dari sistem?');">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-danger btn-sm font-weight-bold px-3 py-2 rounded-2">
+                        <i class="bi bi-box-arrow-right me-1"></i> Keluar
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
@@ -148,37 +214,118 @@
                                         <span class="fw-semibold text-dark small">Rp
                                             {{ number_format($request->estimated_budget, 0, ',', '.') }}</span>
                                     </td>
-
-                                    <!-- Status Badge -->
+                                    {{-- Status Approval --}}
                                     <td class="px-4 py-3">
                                         @if ($request->status === 'draft')
+                                            {{-- Draft tetap menggunakan badge --}}
                                             <span
                                                 class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1.5 rounded-2 extra-small">
-                                                <i class="bi bi-pencil-square me-1"></i> Draft
-                                            </span>
-                                        @elseif ($request->status === 'submitted')
-                                            <span
-                                                class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1.5 rounded-2 extra-small">
-                                                <i class="bi bi-clock-history me-1"></i> Review
-                                            </span>
-                                        @elseif ($request->status === 'approved')
-                                            <span
-                                                class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-2 extra-small">
-                                                <i class="bi bi-check-circle me-1"></i> Approved
-                                            </span>
-                                        @elseif ($request->status === 'rejected')
-                                            <span
-                                                class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-2 extra-small">
-                                                <i class="bi bi-x-circle me-1"></i> Rejected
+                                                <i class="bi bi-pencil-square me-1"></i>
+                                                Draft
                                             </span>
                                         @else
-                                            <span
-                                                class="badge bg-light text-dark border px-2.5 py-1.5 rounded-2 extra-small">
-                                                {{ ucfirst($request->status) }}
-                                            </span>
+                                            @php
+                                                $approvalHistories = $request->approvalHistories->sortBy(
+                                                    'approvalLevel.level',
+                                                );
+
+                                                $currentLevel = (int) ($request->current_approval_level ?? 0);
+                                            @endphp
+
+                                            <div class="approval-timeline">
+
+                                                {{-- History Approval --}}
+                                                @foreach ($approvalHistories as $history)
+                                                    <div class="approval-step completed">
+
+                                                        <div class="approval-dot">
+                                                            @if ($history->status === 'approved')
+                                                                <i class="bi bi-check-lg"></i>
+                                                            @else
+                                                                <i class="bi bi-x-lg"></i>
+                                                            @endif
+                                                        </div>
+
+                                                        <div class="approval-line-content">
+                                                            <div class="fw-semibold text-dark small">
+                                                                Level {{ $history->approvalLevel->level }}
+                                                                — {{ $history->approvalLevel->name }}
+                                                            </div>
+
+                                                            <div class="extra-small mt-1">
+                                                                @if ($history->status === 'approved')
+                                                                    <span class="text-success fw-semibold">
+                                                                        <i class="bi bi-check-circle me-1"></i>
+                                                                        Approved
+                                                                    </span>
+                                                                @elseif ($history->status === 'rejected')
+                                                                    <span class="text-danger fw-semibold">
+                                                                        <i class="bi bi-x-circle me-1"></i>
+                                                                        Rejected
+                                                                    </span>
+                                                                @endif
+                                                            </div>
+
+                                                            @if ($history->action_at)
+                                                                <div class="text-muted extra-small mt-1">
+                                                                    {{ $history->action_at->format('d M Y H:i') }}
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+
+                                                {{-- Sedang Menunggu Approval --}}
+                                                @if (in_array($request->status, ['submitted', 'on_review']))
+                                                    <div class="approval-step active">
+
+                                                        <div class="approval-dot">
+                                                            <i class="bi bi-clock"></i>
+                                                        </div>
+
+                                                        <div class="approval-line-content">
+                                                            <div class="fw-semibold text-dark small">
+                                                                Level {{ $currentLevel }}
+                                                            </div>
+
+                                                            <div class="text-warning fw-semibold extra-small mt-1">
+                                                                <i class="bi bi-hourglass-split me-1"></i>
+                                                                Menunggu Approval
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                                {{-- Final Status --}}
+                                                @if ($request->status === 'approved')
+                                                    <div class="approval-final approved">
+                                                        <div class="approval-dot">
+                                                            <i class="bi bi-check-lg"></i>
+                                                        </div>
+
+                                                        <div class="approval-line-content">
+                                                            <div class="fw-semibold text-success small">
+                                                                Pengajuan Disetujui
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @elseif ($request->status === 'rejected')
+                                                    <div class="approval-final rejected">
+                                                        <div class="approval-dot">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </div>
+
+                                                        <div class="approval-line-content">
+                                                            <div class="fw-semibold text-danger small">
+                                                                Pengajuan Ditolak
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+
+                                            </div>
                                         @endif
                                     </td>
-
                                     <!-- Action Buttons -->
                                     <td class="px-4 py-3 text-end">
                                         <div class="d-inline-flex align-items-center gap-1">

@@ -306,11 +306,13 @@
                                         {{-- Tombol Hapus Dokumen (Hanya jika status masih Draft) --}}
                                         @if ($warehouseRequest->status === 'draft')
                                             <form method="POST"
-                                                action="{{ route('warehouse-requests.documents.destroy', $document) }}"
+                                                action="{{ route('warehouse-requests.documents.destroy.zz', $document) }}"
                                                 class="d-inline"
                                                 onsubmit="return confirm('Apakah Anda yakin ingin menghapus dokumen ini?');">
+
                                                 @csrf
                                                 @method('DELETE')
+
                                                 <button type="submit" class="btn btn-outline-danger btn-sm px-2 py-1"
                                                     title="Hapus Dokumen">
                                                     <i class="bi bi-trash"></i>
