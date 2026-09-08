@@ -67,24 +67,15 @@ class ApprovalController extends Controller
     {
         $user = Auth::user();
 
-        $approvalLevel = ApprovalLevel::where(
-            'role_id',
-            $user->role_id
-        )->first();
+        // 1. Ambil level approval user
+        $approvalLevel = ApprovalLevel::where('role_id', $user->role_id)->first();
         abort_unless($approvalLevel, 403, 'User tidak memiliki level approval.');
 
-        abort_unless(
-            $warehouseRequest->current_approval_level == $approvalLevel->level,
-            403,
-            'Pengajuan ini belum berada pada level approval Anda.'
-        );
+        // 2. Cek apakah user berhak mengeksekusi Approve/Reject saat ini
+        $canApprove = ((int) $warehouseRequest->current_approval_level === (int) $approvalLevel->level &&
+            in_array($warehouseRequest->status, ['submitted', 'on_review'], true));
 
-        abort_unless(
-            in_array($warehouseRequest->status, ['submitted', 'on_review'], true),
-            403,
-            'Pengajuan ini tidak dapat diproses.'
-        );
-
+        // 3. Eager load data terkait
         $warehouseRequest->load([
             'requestor',
             'documents',
@@ -92,10 +83,7 @@ class ApprovalController extends Controller
             'approvalHistories.approver.role',
         ]);
 
-        return view(
-            'approvals.show',
-            compact('warehouseRequest', 'approvalLevel')
-        );
+        return view('approvals.show', compact('warehouseRequest', 'approvalLevel', 'canApprove'));
     }
 
 
