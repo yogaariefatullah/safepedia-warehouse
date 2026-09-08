@@ -58,17 +58,11 @@ class WarehouseRequest extends Model
         return $this->belongsTo(User::class, 'requestor_id');
     }
 
-    /**
-     * Dokumen pengajuan.
-     */
     public function documents(): HasMany
     {
         return $this->hasMany(WarehouseDocument::class);
     }
 
-    /**
-     * Riwayat approval.
-     */
     public function approvalHistories(): HasMany
     {
         return $this->hasMany(ApprovalHistory::class);

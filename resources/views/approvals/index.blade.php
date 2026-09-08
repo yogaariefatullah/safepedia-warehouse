@@ -7,16 +7,15 @@
 
     <title>Approval Pengajuan - {{ config('app.name', 'Safepedia') }}</title>
 
-    <!-- Google Fonts -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Bootstrap 5 -->
+   
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
@@ -81,8 +80,6 @@
 </head>
 
 <body class="bg-light min-vh-100">
-
-    <!-- Header / Navbar -->
     <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom py-3 sticky-top">
         <div class="container-fluid max-w-7xl px-3 px-lg-4">
 
@@ -121,13 +118,9 @@
 
         </div>
     </nav>
-
-    <!-- Main Content -->
     <main class="py-4">
 
         <div class="container-fluid max-w-7xl px-3 px-lg-4">
-
-            <!-- Success Alert -->
             @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 rounded-3"
                     role="alert">
@@ -151,8 +144,6 @@
                     </button>
                 </div>
             @endif
-
-            <!-- Approval Information -->
             <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
 
                 <div class="card-body p-4">
@@ -180,15 +171,12 @@
 
             </div>
 
-            <!-- Data Table Card -->
             <div class="card border-0 bg-white rounded-3 shadow-sm overflow-hidden">
-
-                <!-- Card Header with Dynamic Badge & Filter Tabs -->
                 <div class="card-header bg-white border-bottom py-3 px-4">
 
                     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
 
-                        <!-- Badge Dinamis berdasarkan Filter Active -->
+               
                         <div>
                             @if (($statusFilter ?? request('status')) === 'approved')
                                 <span
@@ -211,7 +199,6 @@
                             @endif
                         </div>
 
-                        <!-- Filter Tab Cepat -->
                         <div class="btn-group btn-group-sm" role="group">
                             <a href="{{ route('approvals.index') }}"
                                 class="btn {{ !request('status') ? 'btn-primary' : 'btn-outline-secondary' }}">
@@ -230,8 +217,6 @@
                     </div>
 
                 </div>
-
-                <!-- Table -->
                 <div class="table-responsive">
 
                     <table class="table table-hover align-middle mb-0">
@@ -273,8 +258,6 @@
 
                             @forelse ($requests as $request)
                                 <tr class="border-bottom">
-
-                                    <!-- Code -->
                                     <td class="px-4 py-3">
 
                                         <span
@@ -283,8 +266,6 @@
                                         </span>
 
                                     </td>
-
-                                    <!-- Warehouse -->
                                     <td class="px-4 py-3">
 
                                         <span class="fw-bold text-dark d-block small">
@@ -297,8 +278,6 @@
                                         </span>
 
                                     </td>
-
-                                    <!-- Requestor -->
                                     <td class="px-4 py-3">
 
                                         <span class="fw-semibold text-dark small">
@@ -306,8 +285,6 @@
                                         </span>
 
                                     </td>
-
-                                    <!-- Budget -->
                                     <td class="px-4 py-3">
 
                                         <span class="fw-semibold text-dark small">
@@ -315,11 +292,7 @@
                                         </span>
 
                                     </td>
-
-                                    <!-- Status Column with Timeline -->
                                     <td class="px-4 py-3">
-
-                                        {{-- 1. Status Approved Full --}}
                                         @if ($request->status === 'approved')
                                             <span
                                                 class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-2 extra-small mb-1 d-inline-block">
@@ -334,8 +307,6 @@
                                                     @endif
                                                 @endfor
                                             </div>
-
-                                            {{-- 2. Status Rejected --}}
                                         @elseif ($request->status === 'rejected')
                                             @php
                                                 $lastHistory = $request->approvalHistories
@@ -372,7 +343,7 @@
                                                 @endfor
                                             </div>
 
-                                            {{-- 3. Status On Review / Submitted (Pending Process) --}}
+                                          
                                         @else
                                             @php
                                                 $activeLevel = $request->current_approval_level ?? 1;
@@ -407,7 +378,6 @@
 
                                     </td>
 
-                                    <!-- Action -->
                                     <td class="px-4 py-3 text-end">
 
                                         <a href="{{ route('approvals.show', $request) }}"
@@ -452,7 +422,6 @@
 
                 </div>
 
-                <!-- Pagination -->
                 @if ($requests->hasPages())
                     <div class="card-footer bg-white border-top py-3 px-4">
 
@@ -467,10 +436,8 @@
 
     </main>
 
-    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Init Tooltips -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))

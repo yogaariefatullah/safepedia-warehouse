@@ -7,16 +7,13 @@
 
     <title>User Management - {{ config('app.name', 'Safepedia') }}</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <style>
@@ -41,8 +38,6 @@
 </head>
 
 <body class="bg-light min-vh-100">
-
-    <!-- Header / Navbar -->
     <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom py-3 sticky-top">
         <div class="container-fluid max-w-7xl px-3 px-lg-4">
 
@@ -82,12 +77,9 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
     <main class="py-4">
 
         <div class="container-fluid max-w-7xl px-3 px-lg-4">
-
-            <!-- Flash Alert Messages -->
             @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 rounded-3"
                     role="alert">
@@ -109,8 +101,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-
-            <!-- Validation Error Alert (Gagal saat simpan edit) -->
             @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4 rounded-3"
                     role="alert">
@@ -127,7 +117,6 @@
                 </div>
             @endif
 
-            <!-- Header Card Info & Action -->
             <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
                 <div class="card-body p-4">
                     <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
@@ -148,7 +137,6 @@
                 </div>
             </div>
 
-            <!-- Data Table Card -->
             <div class="card border-0 bg-white rounded-3 shadow-sm overflow-hidden">
 
                 <div class="table-responsive">
@@ -173,12 +161,10 @@
                             @forelse ($users as $index => $user)
                                 <tr class="border-bottom">
 
-                                    <!-- Index Number -->
                                     <td class="px-4 py-3 text-muted extra-small fw-semibold">
                                         {{ $users->firstItem() + $index }}
                                     </td>
 
-                                    <!-- Nama User -->
                                     <td class="px-4 py-3">
                                         <div class="d-flex align-items-center gap-2">
                                             <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center font-weight-bold border"
@@ -199,14 +185,12 @@
                                         </div>
                                     </td>
 
-                                    <!-- Email -->
                                     <td class="px-4 py-3">
                                         <span class="text-dark small font-monospace">
                                             {{ $user->email }}
                                         </span>
                                     </td>
 
-                                    <!-- Role Badge -->
                                     <td class="px-4 py-3">
                                         @php
                                             $roleSlug = $user->role->slug ?? ($user->role->name ?? '');
@@ -218,14 +202,12 @@
                                         </span>
                                     </td>
 
-                                    <!-- Tanggal Terdaftar -->
                                     <td class="px-4 py-3">
                                         <span class="text-muted extra-small">
                                             {{ $user->created_at ? $user->created_at->format('d M Y, H:i') : '-' }}
                                         </span>
                                     </td>
 
-                                    <!-- Action Button (Edit Modal Trigger) -->
                                     <td class="px-4 py-3 text-end">
                                         <button type="button"
                                             class="btn btn-outline-primary btn-sm px-3 py-1 rounded-2"
@@ -236,7 +218,6 @@
 
                                 </tr>
 
-                                <!-- Modal Edit User untuk User ID ini -->
                                 <div class="modal fade" id="editUserModal{{ $user->id }}" tabindex="-1"
                                     aria-labelledby="editUserModalLabel{{ $user->id }}" aria-hidden="true">
                                     <div class="modal-dialog modal-dialog-centered">
@@ -258,7 +239,6 @@
 
                                                 <div class="modal-body text-start p-4">
 
-                                                    <!-- Nama Lengkap -->
                                                     <div class="mb-3">
                                                         <label
                                                             class="form-label font-weight-semibold small text-dark">Nama
@@ -268,7 +248,6 @@
                                                             value="{{ old('name', $user->name) }}" required>
                                                     </div>
 
-                                                    <!-- Alamat Email -->
                                                     <div class="mb-3">
                                                         <label
                                                             class="form-label font-weight-semibold small text-dark">Alamat
@@ -278,7 +257,6 @@
                                                             value="{{ old('email', $user->email) }}" required>
                                                     </div>
 
-                                                    <!-- Role Selection -->
                                                     <div class="mb-3">
                                                         <label
                                                             class="form-label font-weight-semibold small text-dark">Role
@@ -296,7 +274,6 @@
 
                                                     <hr class="my-3 border-light-subtle">
 
-                                                    <!-- Password Baru (Opsional) -->
                                                     <div class="mb-3">
                                                         <label class="form-label font-weight-semibold small text-dark">
                                                             Password Baru <span
@@ -308,7 +285,6 @@
                                                             placeholder="Masukkan password baru minimal 8 karakter">
                                                     </div>
 
-                                                    <!-- Konfirmasi Password Baru -->
                                                     <div class="mb-0">
                                                         <label
                                                             class="form-label font-weight-semibold small text-dark">Konfirmasi
@@ -333,7 +309,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- End Modal -->
 
                             @empty
                                 <tr>
@@ -351,7 +326,6 @@
 
                 </div>
 
-                <!-- Pagination Footer -->
                 @if ($users->hasPages())
                     <div class="card-footer bg-white border-top py-3 px-4">
                         {{ $users->links() }}
@@ -364,7 +338,6 @@
 
     </main>
 
-    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>

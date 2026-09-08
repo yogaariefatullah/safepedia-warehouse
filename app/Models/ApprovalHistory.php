@@ -51,9 +51,6 @@ class ApprovalHistory extends Model
         );
     }
 
-    /**
-     * Level approval.
-     */
     public function approvalLevel(): BelongsTo
     {
         return $this->belongsTo(
@@ -62,9 +59,6 @@ class ApprovalHistory extends Model
         );
     }
 
-    /**
-     * User yang melakukan approval.
-     */
     public function approver(): BelongsTo
     {
         return $this->belongsTo(

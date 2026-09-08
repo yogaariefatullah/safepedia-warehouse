@@ -286,8 +286,6 @@
                         @endforelse
                     </div>
                 </div>
-
-                <!-- Action Approval Card -->
                 <div class="card border-0 bg-white rounded-3 shadow-sm">
                     <div class="card-header bg-white border-bottom py-3">
                         <h5 class="font-weight-bold text-dark mb-0 fs-6">
@@ -296,7 +294,6 @@
                     </div>
                     <div class="card-body p-4">
                         @if ($canApprove)
-                            {{-- TAMPILKAN TOMBOL ACTION JIKA MEMILIKI HAK AKSES --}}
                             <div class="alert alert-info border-0 shadow-sm d-flex align-items-center mb-3 rounded-3"
                                 role="alert">
                                 <i class="bi bi-info-circle-fill fs-5 me-2"></i>
@@ -322,7 +319,6 @@
                                 </button>
                             </div>
                         @else
-                            {{-- TAMPILKAN INFORMASI READ-ONLY JIKA TAHAPNYA SUDAH LEWAT/SELESAI --}}
                             <div class="alert alert-secondary border-0 d-flex align-items-center mb-0 rounded-3"
                                 role="alert">
                                 <i class="bi bi-eye-fill fs-5 me-2 text-secondary"></i>
@@ -346,7 +342,6 @@
             </div>
         </main>
 
-        <!-- Reject Modal (Bootstrap 5) -->
         <div class="modal fade" id="rejectModal" tabindex="-1" aria-labelledby="rejectModalLabel"
             aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
@@ -384,11 +379,8 @@
                 </div>
             </div>
         </div>
-
-        <!-- Bootstrap 5 JS Bundle -->
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- Leaflet OpenStreetMap JS -->
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
         <script>
             document.addEventListener('DOMContentLoaded', function() {

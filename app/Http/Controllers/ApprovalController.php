@@ -15,8 +15,6 @@ class ApprovalController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
-
-        // Cari level approval milik user saat ini
         $approvalLevel = ApprovalLevel::where('role_id', $user->role_id)->first();
 
         abort_unless($approvalLevel, 403, 'User tidak memiliki level approval.');
@@ -30,30 +28,25 @@ class ApprovalController extends Controller
             'approvalHistories.approver.role',
         ]);
 
-        // Logika Filter
         if ($statusFilter === 'approved') {
-            // Tampilkan pengajuan yang sudah di-approve oleh user/role ini
             $query->whereHas('approvalHistories', function ($q) use ($user, $approvalLevel) {
                 $q->where('approval_level_id', $approvalLevel->id)
                     ->where('approver_id', $user->id)
                     ->where('status', 'approved');
             });
         } elseif ($statusFilter === 'rejected') {
-            // Tampilkan pengajuan yang ditolak oleh user/role ini
             $query->whereHas('approvalHistories', function ($q) use ($user, $approvalLevel) {
                 $q->where('approval_level_id', $approvalLevel->id)
                     ->where('approver_id', $user->id)
                     ->where('status', 'rejected');
             });
         } else {
-            // Default (Pending / Butuh Action): Menunggu review pada level user
             $query->where('current_approval_level', $approvalLevel->level)
                 ->whereIn('status', ['submitted', 'on_review']);
         }
 
         $requests = $query->latest('submitted_at')->paginate(10);
 
-        // Menjaga agar query string (?status=...) tidak hilang saat klik halaman berikutnya (pagination)
         $requests->appends($request->query());
 
         return view(
@@ -62,20 +55,16 @@ class ApprovalController extends Controller
         );
     }
 
-
     public function show(WarehouseRequest $warehouseRequest)
     {
         $user = Auth::user();
 
-        // 1. Ambil level approval user
         $approvalLevel = ApprovalLevel::where('role_id', $user->role_id)->first();
         abort_unless($approvalLevel, 403, 'User tidak memiliki level approval.');
 
-        // 2. Cek apakah user berhak mengeksekusi Approve/Reject saat ini
         $canApprove = ((int) $warehouseRequest->current_approval_level === (int) $approvalLevel->level &&
             in_array($warehouseRequest->status, ['submitted', 'on_review'], true));
 
-        // 3. Eager load data terkait
         $warehouseRequest->load([
             'requestor',
             'documents',
@@ -86,7 +75,6 @@ class ApprovalController extends Controller
         return view('approvals.show', compact('warehouseRequest', 'approvalLevel', 'canApprove'));
     }
 
-
     public function approve(WarehouseRequest $warehouseRequest)
     {
         $user = Auth::user();
@@ -96,40 +84,22 @@ class ApprovalController extends Controller
             $user->role_id
         )->first();
 
-
         if (!$approvalLevel) {
             return redirect()
                 ->back()
                 ->with('error', 'User tidak memiliki level approval.');
         }
 
-
-        if (
-            (int) $warehouseRequest->current_approval_level !=
-            (int) $approvalLevel->level
-        ) {
+        if ((int) $warehouseRequest->current_approval_level !=   (int) $approvalLevel->level) {
             return redirect()
                 ->back()
-                ->with(
-                    'error',
-                    'Pengajuan ini belum berada pada level approval Anda.'
-                );
+                ->with('error', 'Pengajuan ini belum berada pada level approval Anda.');
         }
 
-
-        if (
-            !in_array(
-                $warehouseRequest->status,
-                ['submitted', 'on_review'],
-                true
-            )
-        ) {
+        if (!in_array($warehouseRequest->status, ['submitted', 'on_review'],  true)) {
             return redirect()
                 ->back()
-                ->with(
-                    'error',
-                    'Pengajuan ini tidak dapat diproses.'
-                );
+                ->with('error', 'Pengajuan ini tidak dapat diproses.');
         }
 
         DB::transaction(function () use (
@@ -147,7 +117,6 @@ class ApprovalController extends Controller
                 'action_at' => now(),
             ]);
 
-            // Cari level approval berikutnya
             $nextApprovalLevel = ApprovalLevel::where(
                 'level',
                 '>',
@@ -176,8 +145,6 @@ class ApprovalController extends Controller
             ->route('approvals.index')
             ->with('success', 'Pengajuan berhasil disetujui.');
     }
-
-
 
 
     public function reject(Request $request, WarehouseRequest $warehouseRequest)

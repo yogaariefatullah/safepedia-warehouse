@@ -6,17 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Edit Pengajuan Gudang - {{ config('app.name', 'Safepedia') }}</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
-
-    <!-- Bootstrap 5 & Bootstrap Icons CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Leaflet OpenStreetMap CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
@@ -41,7 +37,6 @@
 
 <body class="bg-light min-vh-100">
 
-    <!-- Header / Navbar -->
     <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom py-3 sticky-top">
         <div class="container-fluid max-w-3xl px-3">
             <div class="d-flex align-items-center justify-content-between w-100">
@@ -64,7 +59,6 @@
                 </span>
             </div>
         </div>
-        <!-- Tombol Logout -->
         <form method="POST" action="{{ route('logout') }}" class="d-inline"
             onsubmit="return confirm('Apakah Anda yakin ingin keluar dari sistem?');">
             @csrf
@@ -74,11 +68,9 @@
         </form>
     </nav>
 
-    <!-- Main Content Body -->
     <main class="py-4">
         <div class="container-fluid max-w-3xl px-3">
 
-            <!-- Banner Deskripsi -->
             <div class="mb-4">
                 <h1 class="h4 font-weight-bold text-dark mb-1">
                     Pembaruan Informasi Pengajuan
@@ -88,7 +80,6 @@
                 </p>
             </div>
 
-            {{-- Error Validation Alert --}}
             @if ($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4 rounded-3"
                     role="alert">
@@ -104,8 +95,6 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             @endif
-
-            <!-- Form Card -->
             <div class="card border-0 bg-white rounded-3 shadow-sm">
                 <div class="card-body p-4">
 
@@ -113,7 +102,6 @@
                         @csrf
                         @method('PUT')
 
-                        <!-- Nama Gudang -->
                         <div class="mb-3">
                             <label for="warehouse_name" class="form-label font-weight-semibold text-dark small mb-1">
                                 Nama Gudang <span class="text-danger">*</span>
@@ -124,7 +112,6 @@
                                 required>
                         </div>
 
-                        <!-- Alamat -->
                         <div class="mb-3">
                             <label for="address" class="form-label font-weight-semibold text-dark small mb-1">
                                 Alamat Lengkap <span class="text-danger">*</span>
@@ -133,7 +120,6 @@
                                 placeholder="Jalan, Kelurahan, Kecamatan, Kota/Kabupaten" required>{{ old('address', $warehouseRequest->address) }}</textarea>
                         </div>
 
-                        <!-- Map Picker Section -->
                         <div class="mb-3">
                             <div class="d-flex align-items-center justify-content-between mb-1">
                                 <label class="form-label font-weight-semibold text-dark small mb-0">
@@ -147,7 +133,6 @@
                             <div id="picker-map" class="border"></div>
                         </div>
 
-                        <!-- Grid Latitude & Longitude -->
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label for="latitude" class="form-label font-weight-semibold text-dark small mb-1">
@@ -167,8 +152,6 @@
                                     class="form-control rounded-2" placeholder="106.816666" required readonly>
                             </div>
                         </div>
-
-                        <!-- Grid Luas Area & Budget -->
                         <div class="row g-3 mb-3">
                             <div class="col-md-6">
                                 <label for="area" class="form-label font-weight-semibold text-dark small mb-1">
@@ -197,7 +180,6 @@
                             </div>
                         </div>
 
-                        <!-- Deskripsi -->
                         <div class="mb-4">
                             <label for="description" class="form-label font-weight-semibold text-dark small mb-1">
                                 Deskripsi Tambahan <span class="text-danger">*</span>
@@ -205,8 +187,6 @@
                             <textarea id="description" name="description" rows="4" class="form-control rounded-2"
                                 placeholder="Jelaskan kebutuhan operasional dan pertimbangan lokasi gudang ini..." required>{{ old('description', $warehouseRequest->description) }}</textarea>
                         </div>
-
-                        <!-- Action Buttons -->
                         <div class="d-flex align-items-center justify-content-end gap-2 pt-3 border-top">
                             <a href="{{ route('warehouse-requests.show', $warehouseRequest) }}"
                                 class="btn btn-light font-weight-semibold btn-sm px-3 py-2 rounded-2 border">
@@ -226,14 +206,12 @@
         </div>
     </main>
 
-    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Leaflet OpenStreetMap JS -->
+   
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Gunakan nilai dari database ($warehouseRequest) atau old() jika terjadi galat validasi
             var currentLat = {{ old('latitude', $warehouseRequest->latitude ?? -6.2088) }};
             var currentLng = {{ old('longitude', $warehouseRequest->longitude ?? 106.8456) }};
 
@@ -244,21 +222,17 @@
                 attribution: '&copy; OpenStreetMap'
             }).addTo(map);
 
-            // Inisialisasi marker di posisi awal data pengajuan
             var marker = L.marker([currentLat, currentLng]).addTo(map)
                 .bindPopup('<b>{{ addslashes($warehouseRequest->warehouse_name) }}</b><br>Lokasi saat ini.')
                 .openPopup();
 
-            // Handler klik untuk memindahkan marker dan memperbarui koordinat
             map.on('click', function(e) {
                 var lat = e.latlng.lat.toFixed(6);
                 var lng = e.latlng.lng.toFixed(6);
 
-                // Update nilai pada input form
                 document.getElementById('latitude').value = lat;
                 document.getElementById('longitude').value = lng;
 
-                // Geser posisi marker
                 marker.setLatLng(e.latlng);
             });
         });

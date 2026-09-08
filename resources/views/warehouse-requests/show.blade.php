@@ -6,17 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Detail Pengajuan - {{ config('app.name', 'Safepedia') }}</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Bootstrap 5 & Bootstrap Icons CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-    <!-- Leaflet OpenStreetMap CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
@@ -45,7 +42,6 @@
 
 <body class="bg-light min-vh-100">
 
-    <!-- Header / Navbar -->
     <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom py-3 sticky-top">
         <div class="container-fluid max-w-4xl px-3">
             <div class="d-flex align-items-center justify-content-between w-100">
@@ -62,46 +58,47 @@
                     </div>
                 </div>
 
-                <div>
-                    @if ($warehouseRequest->status === 'draft')
-                        <span
-                            class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1.5 rounded-2">
-                            <i class="bi bi-pencil-square me-1"></i> Draft
-                        </span>
-                    @elseif ($warehouseRequest->status === 'submitted')
-                        <span
-                            class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1.5 rounded-2">
-                            <i class="bi bi-clock-history me-1"></i> On Review
-                        </span>
-                    @elseif ($warehouseRequest->status === 'approved')
-                        <span
-                            class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-2">
-                            <i class="bi bi-check-circle me-1"></i> Approved
-                        </span>
-                    @elseif ($warehouseRequest->status === 'rejected')
-                        <span
-                            class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-2">
-                            <i class="bi bi-x-circle me-1"></i> Rejected
-                        </span>
-                    @endif
+                <div class="d-flex align-items-center gap-2">
+                    <div>
+                        @if ($warehouseRequest->status === 'draft')
+                            <span
+                                class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1.5 rounded-2">
+                                <i class="bi bi-pencil-square me-1"></i> Draft
+                            </span>
+                        @elseif ($warehouseRequest->status === 'submitted')
+                            <span
+                                class="badge bg-warning-subtle text-warning border border-warning-subtle px-2.5 py-1.5 rounded-2">
+                                <i class="bi bi-clock-history me-1"></i> On Review
+                            </span>
+                        @elseif ($warehouseRequest->status === 'approved')
+                            <span
+                                class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-2">
+                                <i class="bi bi-check-circle me-1"></i> Approved
+                            </span>
+                        @elseif ($warehouseRequest->status === 'rejected')
+                            <span
+                                class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-2">
+                                <i class="bi bi-x-circle me-1"></i> Rejected
+                            </span>
+                        @endif
+                    </div>
+
+                    <form method="POST" action="{{ route('logout') }}" class="d-inline"
+                        onsubmit="return confirm('Apakah Anda yakin ingin keluar dari sistem?');">
+                        @csrf
+                        <button type="submit"
+                            class="btn btn-outline-danger btn-sm font-weight-bold px-3 py-2 rounded-2">
+                            <i class="bi bi-box-arrow-right me-1"></i> Keluar
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
-        <!-- Tombol Logout -->
-        <form method="POST" action="{{ route('logout') }}" class="d-inline"
-            onsubmit="return confirm('Apakah Anda yakin ingin keluar dari sistem?');">
-            @csrf
-            <button type="submit" class="btn btn-outline-danger btn-sm font-weight-bold px-3 py-2 rounded-2">
-                <i class="bi bi-box-arrow-right me-1"></i> Keluar
-            </button>
-        </form>
     </nav>
 
-    <!-- Main Content Body -->
     <main class="py-4">
         <div class="container-fluid max-w-4xl px-3">
 
-            {{-- Flash Alert Session Success --}}
             @if (session('success'))
                 <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
                     <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
@@ -109,7 +106,6 @@
                 </div>
             @endif
 
-            <!-- Informational Summary Card -->
             <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom py-3">
                     <h5 class="font-weight-bold text-dark mb-0 fs-6">
@@ -165,7 +161,6 @@
                 </div>
             </div>
 
-            <!-- GIS Map Visual Card -->
             <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
                     <h5 class="font-weight-bold text-dark mb-0 fs-6">
@@ -180,7 +175,6 @@
                 </div>
             </div>
 
-            {{-- Tahap Upload Dokumen (Khusus Status Draft) --}}
             @if ($warehouseRequest->status === 'draft')
                 <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
                     <div class="card-header bg-white border-bottom py-3">
@@ -226,7 +220,6 @@
                 </div>
             @endif
 
-            {{-- Tahap Submit Pengajuan (Khusus Status Draft) --}}
             @if ($warehouseRequest->status === 'draft')
                 @php
                     $documentCount = $warehouseRequest->documents->count();
@@ -269,7 +262,6 @@
                 </div>
             @endif
 
-            <!-- Document Attachments Card -->
             <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
                 <div class="card-header bg-white border-bottom py-3">
                     <h5 class="font-weight-bold text-dark mb-0 fs-6">
@@ -297,13 +289,11 @@
                                     </div>
 
                                     <div class="d-flex align-items-center gap-2">
-                                        {{-- Tombol Download Dokumen --}}
                                         <a href="{{ route('warehouse-requests.documents.download', $document) }}"
                                             class="btn btn-outline-primary btn-sm px-2.5 py-1" title="Download File">
                                             <i class="bi bi-download me-1"></i> Download
                                         </a>
 
-                                        {{-- Tombol Hapus Dokumen (Hanya jika status masih Draft) --}}
                                         @if ($warehouseRequest->status === 'draft')
                                             <form method="POST"
                                                 action="{{ route('warehouse-requests.documents.destroy.zz', $document) }}"
@@ -332,7 +322,6 @@
                 </div>
             </div>
 
-            <!-- Approval Audit History Card -->
             <div class="card border-0 bg-white rounded-3 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
                     <h5 class="font-weight-bold text-dark mb-0 fs-6">
@@ -382,10 +371,8 @@
         </div>
     </main>
 
-    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-    <!-- Leaflet OpenStreetMap JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
