@@ -56,6 +56,11 @@
                             class="btn btn-primary btn-sm font-weight-bold px-3 py-2 rounded-2">
                             <i class="bi bi-plus-lg me-1"></i> Buat Pengajuan Baru
                         </a>
+                    @elseif ((auth()->user()->role->name ?? '') === 'admin')
+                        <a href="{{ route('usermanagement.index') }}"
+                            class="btn btn-primary btn-sm font-weight-bold px-3 py-2 rounded-2">
+                            <i class="bi bi-people-fill me-1"></i> User Management
+                        </a>
                     @endif
 
                     <form method="POST" action="{{ route('logout') }}" class="d-inline"
@@ -75,6 +80,60 @@
     <main class="py-4">
         <div class="container-fluid max-w-7xl px-3 px-lg-4">
 
+            {{-- Query & Data Aggregation --}}
+            @php
+                $user = auth()->user();
+                $roleName = $user->role->slug ?? ($user->role->name ?? '');
+                $roleId = $user->role_id;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Data khusus Admin
+                |--------------------------------------------------------------------------
+                */
+                $totalUsers = 0;
+                $recentUsers = collect();
+                if ($roleName === 'admin') {
+                    $totalUsers = \App\Models\User::count();
+                    $recentUsers = \App\Models\User::with('role')->latest()->take(5)->get();
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Approval Level User
+                |--------------------------------------------------------------------------
+                */
+                $approvalLevel = \App\Models\ApprovalLevel::where('role_id', $roleId)
+                    ->where('is_active', true)
+                    ->first();
+
+                $currentApprovalLevel = $approvalLevel?->level;
+
+                /*
+                |--------------------------------------------------------------------------
+                | Base Query & Stats
+                |--------------------------------------------------------------------------
+                */
+                $baseQuery = \App\Models\WarehouseRequest::query();
+
+                if ($roleName === 'requestor') {
+                    $baseQuery->where('requestor_id', $user->id);
+                }
+
+                $totalRequests = (clone $baseQuery)->count();
+                $approvedRequests = (clone $baseQuery)->where('status', 'approved')->count();
+                $rejectedRequests = (clone $baseQuery)->where('status', 'rejected')->count();
+                $submittedRequests = (clone $baseQuery)->whereIn('status', ['submitted', 'on_review'])->count();
+
+                $pendingMyReview = 0;
+                if ($approvalLevel) {
+                    $pendingMyReview = (clone $baseQuery)
+                        ->whereIn('status', ['submitted', 'on_review'])
+                        ->where('current_approval_level', $currentApprovalLevel)
+                        ->count();
+                }
+            @endphp
+
             {{-- Hero Banner Flat --}}
             <div class="card border-0 bg-white rounded-3 mb-4 p-4 shadow-sm">
                 <div class="card-body p-0">
@@ -82,7 +141,15 @@
                         <i class="bi bi-shield-check me-1"></i> Portal Otorisasi Gudang
                     </span>
 
-                    @if ((auth()->user()->role->name ?? '') === 'requestor')
+                    @if ($roleName === 'admin')
+                        <h4 class="font-weight-bold text-dark mb-1">
+                            Panel Administrator System
+                        </h4>
+                        <p class="text-muted small mb-0">
+                            Kelola akun pengguna, alokasi role/hak akses sistem, dan pantau pengguna terdaftar dalam
+                            aplikasi.
+                        </p>
+                    @elseif ($roleName === 'requestor')
                         <h4 class="font-weight-bold text-dark mb-1">
                             Monitoring & Pengajuan Gudang Distribusi
                         </h4>
@@ -102,91 +169,78 @@
                 </div>
             </div>
 
-            {{-- Query & Data Aggregation --}}
-            @php
-                $user = auth()->user();
-                $roleName = $user->role->slug ?? '';
-                $roleId = $user->role_id;
+            {{-- 1. TAMPILAN MATRIKS KHUSUS ADMIN --}}
+            @if ($roleName === 'admin')
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div
+                            class="card border-0 bg-white rounded-3 p-3 h-100 shadow-sm d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <span class="text-uppercase text-muted font-weight-bold small">Total Pengguna</span>
+                                    <div class="bg-primary-subtle text-primary p-2 rounded">
+                                        <i class="bi bi-people fs-5"></i>
+                                    </div>
+                                </div>
+                                <h2 class="font-weight-bold text-dark mb-1">{{ $totalUsers }}</h2>
+                                <span class="text-muted extra-small d-block mb-3">Pengguna terdaftar di dalam
+                                    sistem</span>
+                            </div>
+                            <div class="pt-2 border-top">
+                                <a href="{{ route('usermanagement.index') }}"
+                                    class="btn btn-primary btn-sm w-100 font-weight-semibold">
+                                    <i class="bi bi-gear-fill me-1"></i> Buka User Management
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-                /*
-                |--------------------------------------------------------------------------
-                | Approval Level User
-                |--------------------------------------------------------------------------
-                */
-                $approvalLevel = \App\Models\ApprovalLevel::where('role_id', $roleId)
-                    ->where('is_active', true)
-                    ->first();
+                {{-- Preview Pengguna Terbaru untuk Admin --}}
+                <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
+                    <div
+                        class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                        <h6 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-person-lines-fill me-1 text-primary"></i> Pengguna Terbaru
+                        </h6>
+                        <a href="{{ route('usermanagement.index') }}"
+                            class="btn btn-outline-primary btn-sm rounded-2 font-weight-semibold">
+                            Kelola Semua User <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="px-4 py-3 extra-small text-uppercase text-muted fw-bold">Nama</th>
+                                    <th class="px-4 py-3 extra-small text-uppercase text-muted fw-bold">Email</th>
+                                    <th class="px-4 py-3 extra-small text-uppercase text-muted fw-bold">Role</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse ($recentUsers as $recentUser)
+                                    <tr>
+                                        <td class="px-4 py-3 fw-semibold text-dark small">{{ $recentUser->name }}</td>
+                                        <td class="px-4 py-3 text-muted small">{{ $recentUser->email }}</td>
+                                        <td class="px-4 py-3">
+                                            <span class="badge bg-light text-dark border px-2 py-1 extra-small">
+                                                {{ ucfirst(str_replace('_', ' ', $recentUser->role->name ?? 'No Role')) }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted py-4 small">Belum ada pengguna
+                                            terdaftar.</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                $currentApprovalLevel = $approvalLevel?->level;
-
-                /*
-                |--------------------------------------------------------------------------
-                | Base Query
-                |--------------------------------------------------------------------------
-                */
-                $baseQuery = \App\Models\WarehouseRequest::query();
-
-                /*
-                |--------------------------------------------------------------------------
-                | Requestor hanya melihat pengajuannya sendiri
-                |--------------------------------------------------------------------------
-                */
-                if ($roleName === 'requestor') {
-                    $baseQuery->where('requestor_id', $user->id);
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Statistik
-                |--------------------------------------------------------------------------
-                */
-                $totalRequests = (clone $baseQuery)->count();
-                $approvedRequests = (clone $baseQuery)->where('status', 'approved')->count();
-                $rejectedRequests = (clone $baseQuery)->where('status', 'rejected')->count();
-
-                /*
-                |--------------------------------------------------------------------------
-                | Pengajuan yang masih dalam proses approval
-                |--------------------------------------------------------------------------
-                */
-                $submittedRequests = (clone $baseQuery)->whereIn('status', ['submitted', 'on_review'])->count();
-
-                /*
-                |--------------------------------------------------------------------------
-                | Pengajuan yang sedang menunggu action user (Approver)
-                |--------------------------------------------------------------------------
-                */
-                $pendingMyReview = 0;
-
-                if ($approvalLevel) {
-                    $pendingMyReview = (clone $baseQuery)
-                        ->whereIn('status', ['submitted', 'on_review'])
-                        ->where('current_approval_level', $currentApprovalLevel)
-                        ->count();
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | History Aktivitas Terbaru
-                |--------------------------------------------------------------------------
-                */
-                $recentHistories = \App\Models\ApprovalHistory::with([
-                    'warehouseRequest',
-                    'approvalLevel',
-                    'approver.role',
-                ])
-                    ->when($roleName === 'requestor', function ($q) use ($user) {
-                        $q->whereHas('warehouseRequest', function ($wr) use ($user) {
-                            $wr->where('requestor_id', $user->id);
-                        });
-                    })
-                    ->latest('action_at')
-                    ->take(5)
-                    ->get();
-            @endphp
-
-            {{-- 1. TAMPILAN MATRIKS REQUESTOR --}}
-            @if ($roleName === 'requestor')
+                {{-- 2. TAMPILAN MATRIKS REQUESTOR --}}
+            @elseif ($roleName === 'requestor')
                 <div class="row g-3 mb-4">
                     <div class="col-6 col-lg-3">
                         <div class="card border-0 bg-white rounded-3 p-3 h-100 shadow-sm">
@@ -237,7 +291,7 @@
                     </div>
                 </div>
 
-                {{-- 2. TAMPILAN MATRIKS APPROVER --}}
+                {{-- 3. TAMPILAN MATRIKS APPROVER --}}
             @else
                 <div class="row g-3 mb-4">
                     <!-- Kartu: Butuh Action Anda -->
@@ -325,20 +379,39 @@
                                 <i class="bi bi-list-task fs-5"></i>
                             </div>
                             <h5 class="font-weight-bold text-dark mb-1">
-                                {{ $roleName === 'requestor' ? 'Daftar Pengajuan Saya' : 'Butuh Action Anda' }}
+                                @if ($roleName === 'admin')
+                                    Kelola Pengguna Sistem
+                                @elseif ($roleName === 'requestor')
+                                    Daftar Pengajuan Saya
+                                @else
+                                    Butuh Action Anda
+                                @endif
                             </h5>
                             <p class="text-muted small mb-0">
-                                {{ $roleName === 'requestor'
-                                    ? 'Kelola draft, periksa alasan penolakan, atau pantau tahap approval gudang Anda saat ini.'
-                                    : 'Tinjau berkas pendukung, koordinat lokasi gudang, dan lakukan tindakan Approve atau Reject.' }}
+                                @if ($roleName === 'admin')
+                                    Tambah pengguna baru, atur ulang password, dan perbarui hak akses role pengguna.
+                                @elseif ($roleName === 'requestor')
+                                    Kelola draft, periksa alasan penolakan, atau pantau tahap approval gudang Anda saat
+                                    ini.
+                                @else
+                                    Tinjau berkas pendukung, koordinat lokasi gudang, dan lakukan tindakan Approve atau
+                                    Reject.
+                                @endif
                             </p>
                         </div>
                         <div class="pt-3 border-top mt-4">
-                            <a href="{{ $roleName === 'requestor' ? route('warehouse-requests.index') : route('approvals.index') }}"
-                                class="btn btn-outline-dark btn-sm font-weight-semibold">
-                                {{ $roleName === 'requestor' ? 'Buka Daftar Pengajuan' : 'Buka Menu Review' }} <i
-                                    class="bi bi-arrow-right ms-1"></i>
-                            </a>
+                            @if ($roleName === 'admin')
+                                <a href="{{ route('usermanagement.index') }}"
+                                    class="btn btn-outline-primary btn-sm font-weight-semibold">
+                                    Buka User Management <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            @else
+                                <a href="{{ $roleName === 'requestor' ? route('warehouse-requests.index') : route('approvals.index') }}"
+                                    class="btn btn-outline-dark btn-sm font-weight-semibold">
+                                    {{ $roleName === 'requestor' ? 'Buka Daftar Pengajuan' : 'Buka Menu Review' }} <i
+                                        class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>

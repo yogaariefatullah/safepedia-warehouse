@@ -1,11 +1,11 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WarehouseRequestController;
 use App\Http\Controllers\warehouseDocumentController;
 use App\Http\Controllers\ApprovalController;
+use App\Http\Controllers\UsermanagentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,6 +43,12 @@ Route::middleware(['auth', '2fa', 'role:spv_gudang,kepala_gudang,manager_operasi
     Route::get('/{warehouseRequest}', [ApprovalController::class, 'show'])->name('show');
     Route::post('/{warehouseRequest}/approve', [ApprovalController::class, 'approve'])->name('approve');
     Route::post('/{warehouseRequest}/reject', [ApprovalController::class, 'reject'])->name('reject');
+});
+Route::middleware(['auth', '2fa', 'role:admin'])->prefix('usermanagement')->name('usermanagement.')->group(function () {
+    Route::get('/', [UsermanagentController::class, 'index'])->name('index');
+
+    Route::get('/{user}/edit', [UsermanagentController::class, 'edit'])->name('edit');
+    Route::put('/{user}', [UsermanagentController::class, 'update'])->name('update');
 });
 
 /*
