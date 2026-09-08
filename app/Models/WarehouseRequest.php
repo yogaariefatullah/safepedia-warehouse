@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Crypt;
 
 class WarehouseRequest extends Model
 {
@@ -35,9 +36,23 @@ class WarehouseRequest extends Model
         ];
     }
 
-    /**
-     * User yang membuat pengajuan.
-     */
+    public function getRouteKey(): string
+    {
+        return Crypt::encryptString($this->getKey());
+    }
+
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        try {
+            $decryptedId = Crypt::decryptString($value);
+
+            return $this->where($field ?? $this->getKeyName(), $decryptedId)->firstOrFail();
+        } catch (DecryptException $e) {
+            abort(404);
+        }
+    }
+
     public function requestor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requestor_id');

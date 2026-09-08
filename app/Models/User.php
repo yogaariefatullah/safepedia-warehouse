@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Crypt;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -48,7 +49,22 @@ class User extends Authenticatable
             'two_factor_secret' => 'encrypted',
         ];
     }
+    public function getRouteKey(): string
+    {
+        return Crypt::encryptString($this->getKey());
+    }
 
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        try {
+            $decryptedId = Crypt::decryptString($value);
+
+            return $this->where($field ?? $this->getKeyName(), $decryptedId)->firstOrFail();
+        } catch (DecryptException $e) {
+            abort(404);
+        }
+    }
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
