@@ -42,6 +42,11 @@ class UserSeeder extends Seeder
                 'email' => 'direktur.keuangan@safepedia.test',
                 'role' => 'direktur_keuangan',
             ],
+            [
+                'name' => 'admin safepedia',
+                'email' => 'admin@safepedia.test',
+                'role' => 'admin',
+            ],
         ];
 
         foreach ($users as $data) {

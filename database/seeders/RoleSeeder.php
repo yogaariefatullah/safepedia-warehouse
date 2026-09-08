@@ -40,6 +40,11 @@ class RoleSeeder extends Seeder
                 'slug' => 'direktur_keuangan',
                 'description' => 'Memberikan persetujuan akhir terkait budget dan kelayakan finansial.',
             ],
+            [
+                'name' => 'Admin',
+                'slug' => 'admin',
+                'description' => 'User yang mengatur usermanagement.',
+            ],
         ];
 
         foreach ($roles as $role) {
