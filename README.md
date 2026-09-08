@@ -289,17 +289,6 @@ http://127.0.0.1:8000
 
 Untuk development:
 
-```bash
-npm run dev
-```
-
-Jika menggunakan Vite, proses tersebut perlu tetap berjalan selama development apabila asset frontend membutuhkan Vite development server.
-
-Untuk production:
-
-```bash
-npm run build
-```
 
 ---
 
@@ -323,8 +312,6 @@ php artisan key:generate
 php artisan migrate --seed
 
 php artisan storage:link
-
-npm run build
 
 php artisan serve
 ```
