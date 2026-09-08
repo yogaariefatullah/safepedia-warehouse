@@ -6,13 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard - {{ config('app.name', 'Safepedia') }}</title>
 
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
 
-    <!-- Bootstrap 5 & Bootstrap Icons CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
@@ -31,7 +29,10 @@
 
 <body class="bg-light min-vh-100">
 
-    <!-- Top Navbar / Header -->
+    @php
+        extract(\App\Helpers\DashboardHelper::getDashboardData());
+    @endphp
+
     <nav class="navbar navbar-expand-lg navbar-white bg-white border-bottom py-3 sticky-top">
         <div class="container-fluid max-w-7xl px-3 px-lg-4">
             <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between w-100 gap-3">
@@ -51,12 +52,12 @@
                 </div>
 
                 <div class="d-flex align-items-center gap-2">
-                    @if ((auth()->user()->role->name ?? '') === 'requestor')
+                    @if ($roleName === 'requestor')
                         <a href="{{ route('warehouse-requests.create') }}"
                             class="btn btn-primary btn-sm font-weight-bold px-3 py-2 rounded-2">
                             <i class="bi bi-plus-lg me-1"></i> Buat Pengajuan Baru
                         </a>
-                    @elseif ((auth()->user()->role->name ?? '') === 'admin')
+                    @elseif ($roleName === 'admin')
                         <a href="{{ route('usermanagement.index') }}"
                             class="btn btn-primary btn-sm font-weight-bold px-3 py-2 rounded-2">
                             <i class="bi bi-people-fill me-1"></i> User Management
@@ -76,65 +77,9 @@
         </div>
     </nav>
 
-    <!-- Main Content Body -->
     <main class="py-4">
         <div class="container-fluid max-w-7xl px-3 px-lg-4">
 
-            {{-- Query & Data Aggregation --}}
-            @php
-                $user = auth()->user();
-                $roleName = $user->role->slug ?? ($user->role->name ?? '');
-                $roleId = $user->role_id;
-
-                /*
-                |--------------------------------------------------------------------------
-                | Data khusus Admin
-                |--------------------------------------------------------------------------
-                */
-                $totalUsers = 0;
-                $recentUsers = collect();
-                if ($roleName === 'admin') {
-                    $totalUsers = \App\Models\User::count();
-                    $recentUsers = \App\Models\User::with('role')->latest()->take(5)->get();
-                }
-
-                /*
-                |--------------------------------------------------------------------------
-                | Approval Level User
-                |--------------------------------------------------------------------------
-                */
-                $approvalLevel = \App\Models\ApprovalLevel::where('role_id', $roleId)
-                    ->where('is_active', true)
-                    ->first();
-
-                $currentApprovalLevel = $approvalLevel?->level;
-
-                /*
-                |--------------------------------------------------------------------------
-                | Base Query & Stats
-                |--------------------------------------------------------------------------
-                */
-                $baseQuery = \App\Models\WarehouseRequest::query();
-
-                if ($roleName === 'requestor') {
-                    $baseQuery->where('requestor_id', $user->id);
-                }
-
-                $totalRequests = (clone $baseQuery)->count();
-                $approvedRequests = (clone $baseQuery)->where('status', 'approved')->count();
-                $rejectedRequests = (clone $baseQuery)->where('status', 'rejected')->count();
-                $submittedRequests = (clone $baseQuery)->whereIn('status', ['submitted', 'on_review'])->count();
-
-                $pendingMyReview = 0;
-                if ($approvalLevel) {
-                    $pendingMyReview = (clone $baseQuery)
-                        ->whereIn('status', ['submitted', 'on_review'])
-                        ->where('current_approval_level', $currentApprovalLevel)
-                        ->count();
-                }
-            @endphp
-
-            {{-- Hero Banner Flat --}}
             <div class="card border-0 bg-white rounded-3 mb-4 p-4 shadow-sm">
                 <div class="card-body p-0">
                     <span class="badge bg-light text-primary border px-2.5 py-1 rounded-1 mb-2 font-weight-semibold">
@@ -169,7 +114,6 @@
                 </div>
             </div>
 
-            {{-- 1. TAMPILAN MATRIKS KHUSUS ADMIN --}}
             @if ($roleName === 'admin')
                 <div class="row g-3 mb-4">
                     <div class="col-md-4">
@@ -196,7 +140,6 @@
                     </div>
                 </div>
 
-                {{-- Preview Pengguna Terbaru untuk Admin --}}
                 <div class="card border-0 bg-white rounded-3 shadow-sm mb-4">
                     <div
                         class="card-header bg-white border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
@@ -238,8 +181,6 @@
                         </table>
                     </div>
                 </div>
-
-                {{-- 2. TAMPILAN MATRIKS REQUESTOR --}}
             @elseif ($roleName === 'requestor')
                 <div class="row g-3 mb-4">
                     <div class="col-6 col-lg-3">
@@ -290,11 +231,8 @@
                         </div>
                     </div>
                 </div>
-
-                {{-- 3. TAMPILAN MATRIKS APPROVER --}}
             @else
                 <div class="row g-3 mb-4">
-                    <!-- Kartu: Butuh Action Anda -->
                     <div class="col-md-4">
                         <div
                             class="card border border-warning-subtle bg-warning-subtle rounded-3 p-3 h-100 d-flex flex-column justify-content-between">
@@ -318,7 +256,6 @@
                         </div>
                     </div>
 
-                    <!-- Kartu: Total Approved -->
                     <div class="col-md-4">
                         <div
                             class="card border-0 bg-white rounded-3 p-3 h-100 shadow-sm d-flex flex-column justify-content-between">
@@ -343,7 +280,6 @@
                         </div>
                     </div>
 
-                    <!-- Kartu: Total Rejected -->
                     <div class="col-md-4">
                         <div
                             class="card border-0 bg-white rounded-3 p-3 h-100 shadow-sm d-flex flex-column justify-content-between">
@@ -369,7 +305,6 @@
                 </div>
             @endif
 
-            {{-- Navigation Cards --}}
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <div
@@ -443,7 +378,6 @@
         </div>
     </main>
 
-    <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
